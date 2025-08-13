@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<CategoryKey>('magazines');
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>('');
 
   const magazines = useSelector(selectMagazines);
   const articles = useSelector(selectArticles);
@@ -117,7 +117,21 @@ export default function HomeScreen() {
         <ScreenHeader title="Home" />
 
         {/* Top category navigation */}
-        <CategoryTabs active={activeCategory} onChange={setActiveCategory} />
+        <CategoryTabs active={activeCategory} onChange={(key) => {
+          switch (key) {
+            case 'magazines':
+              router.push('/(app)/magazine/');
+              break;
+            case 'digests':
+              // setActiveCategory('digests');
+              break;
+            case 'articles':
+              router.push('/(app)/article/');
+              break;
+            default:
+              break;
+          }
+        }} /> 
 
         {/* Featured Magazine */}
         <View style={styles.heroSpacer} />
