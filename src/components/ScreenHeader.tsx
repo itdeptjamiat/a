@@ -8,9 +8,10 @@ import { selectUser } from '@/redux/selectors';
 interface ScreenHeaderProps {
   title: string;
   onRightPress?: () => void;
+  rightContent?: React.ReactNode; // Add this line
 }
 
-export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onRightPress }) => {
+export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onRightPress, rightContent }) => {
   const { theme } = useTheme();
   const user = useSelector(selectUser);
 
@@ -46,6 +47,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onRightPress 
       width: 40,
       height: 40,
       borderRadius: 20,
+      
     },
   });
 
@@ -54,13 +56,15 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({ title, onRightPress 
   return (
     <Animated.View entering={FadeInDown.delay(150)} style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      <TouchableOpacity style={styles.right} onPress={onRightPress} activeOpacity={0.8}>
-        {user?.avatar ? (
-          <Image source={{ uri: user.avatar }} style={styles.avatar} />
-        ) : (
-          <Text style={styles.initialText}>{initial}</Text>
-        )}
-      </TouchableOpacity>
+      {rightContent ? rightContent : (
+        <TouchableOpacity style={styles.right} onPress={onRightPress} activeOpacity={0.8}>
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.avatar} />
+          ) : (
+            <Text style={styles.initialText}>{initial}</Text>
+          )}
+        </TouchableOpacity>
+      )}
     </Animated.View>
   );
 };

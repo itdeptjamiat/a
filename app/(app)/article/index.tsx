@@ -117,7 +117,7 @@ const ArticlesScreen: React.FC = () => {
   }
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper bottomSafeArea>
       <Animated.View entering={FadeInDown.delay(120)} style={styles.header}>
         <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={handleBack}>
           <Ionicons name="chevron-back" size={20} color={theme.colors.text} />

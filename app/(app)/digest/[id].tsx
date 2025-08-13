@@ -1,490 +1,266 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Image, Dimensions, Share } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
-import Animated, { FadeInDown, FadeInUp, BounceIn } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useCallback, useMemo } from 'react';
+import { View, StyleSheet, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-
+import { ScreenWrapper } from '@/components';
+import { SectionHeader } from '@/components/home';
 import { useTheme } from '@/context/ThemeContext';
-import { useWindowDimensions } from '@/hooks/useWindowDimensions';
-import { H1, H2, H3, Body } from '@/typography';
-import { 
-  selectSelectedMagazine,
-  selectMagazineDetailLoading,
-} from '@/redux/selectors';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchMagazineDetail } from '@/redux/actions/magazineActions';
-import { clearSelectedMagazine } from '@/redux/slices/magazineSlice';
-import { AppDispatch } from '@/redux/store';
-import { router, useLocalSearchParams } from 'expo-router';
+import { selectSelectedMagazine, selectMagazineDetailLoading, selectMagazineError, selectDigests } from '@/redux/selectors/magazineSelectors';
 
-const { width: screenWidth } = Dimensions.get('window');
-
-export default function DigestViewScreen() {
-  const { theme } = useTheme();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const dispatch = useDispatch<AppDispatch>();
+const SingleDigestScreen: React.FC = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [isLiked, setIsLiked] = useState(false);
+  const router = useRouter();
+  const { theme } = useTheme();
+  const dispatch = useAppDispatch();
 
-  // Selectors
-  const digest = useSelector(selectSelectedMagazine);
-  const loading = useSelector(selectMagazineDetailLoading);
-
-  const isTablet = screenWidth >= 768;
+  const loading = useAppSelector(selectMagazineDetailLoading);
+  const error = useAppSelector(selectMagazineError);
+  const selectedDigest = useAppSelector(selectSelectedMagazine) as any; // Reusing magazine selector, will fetch digest by ID
+  const allDigests = useAppSelector(selectDigests) as any[];
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchMagazineDetail(id));
+      // Assuming fetchMagazineDetail can fetch any content by ID, if not, a new action is needed
+      dispatch(fetchMagazineDetail(String(id)));
     }
-    
-    return () => {
-      dispatch(clearSelectedMagazine());
-    };
   }, [dispatch, id]);
 
-  const handleShare = async () => {
-    if (digest) {
-      try {
-        await Share.share({
-          message: `Check out this fun story: ${digest.name}\n\n${digest.description}`,
-          title: digest.name,
-        });
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    }
-  };
+  const handleBack = useCallback(() => router.back(), [router]);
+  const handleRead = useCallback(() => {
+    // Navigate to PDF reader or content view when implemented
+    console.log('Read Digest:', selectedDigest?.name);
+    // router.push(`/reader?mid=${selectedDigest?.mid}`);
+  }, [selectedDigest]);
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-  };
-
-  const handleRead = () => {
-    // Navigate to story reader
-    console.log('Navigate to story reader');
-  };
+  const relatedDigests = useMemo(() => {
+    // Placeholder for related digests: filter by category or just show some random ones
+    if (!allDigests.length || !selectedDigest?.category) return allDigests.slice(0, 4);
+    return allDigests.filter(d => d.category === selectedDigest.category && d.mid !== selectedDigest.mid).slice(0, 4);
+  }, [allDigests, selectedDigest]);
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    gradientBackground: {
-      flex: 1,
-    },
-    content: {
-      flex: 1,
-    },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.md,
+      backgroundColor: theme.colors.background,
     },
     backButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: theme.colors.surface,
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: theme.colors.surfaceLight,
     },
-    headerTitle: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.bold as any,
-    },
-    headerSpacer: {
-      width: 44,
-    },
-    headerActions: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-    },
-    actionButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: theme.colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    storyBanner: {
-      marginBottom: theme.spacing.lg,
-      marginHorizontal: theme.spacing.lg,
-    },
-    bannerGradient: {
-      borderRadius: theme.borderRadius.xl,
-      padding: theme.spacing.lg,
-    },
-    bannerContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-    },
-    bannerTitle: {
-      color: '#FFFFFF',
-      fontSize: theme.typography.fontSize.xl,
-      fontWeight: theme.typography.fontWeight.bold as any,
-      textAlign: 'center',
-      textShadowColor: 'rgba(0, 0, 0, 0.5)',
-      textShadowOffset: { width: 2, height: 2 },
-      textShadowRadius: 4,
-    },
-    storyInfo: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing.lg,
-    },
-    storyMeta: {
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-      marginBottom: theme.spacing.md,
-    },
-    ageBadge: {
-      backgroundColor: '#4ECDC4',
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.xs,
-      borderRadius: theme.borderRadius.lg,
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
-    },
-    ageBadgeText: {
-      color: '#FFFFFF',
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.bold as any,
-    },
-    categoryBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.colors.primary,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.xs,
-      borderRadius: theme.borderRadius.lg,
-      gap: theme.spacing.xs,
-      borderWidth: 2,
-      borderColor: '#FFFFFF',
-    },
-    categoryBadgeText: {
-      color: '#FFFFFF',
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.bold as any,
-    },
-    storyTitle: {
+    title: {
       color: theme.colors.text,
       fontSize: theme.typography.fontSize['2xl'],
       fontWeight: theme.typography.fontWeight.bold as any,
-      lineHeight: theme.typography.lineHeight.tight,
-      marginBottom: theme.spacing.md,
     },
-    storyDescription: {
-      color: '#FFFFFF',
-      fontSize: theme.typography.fontSize.base,
-      lineHeight: theme.typography.lineHeight.normal,
-      fontWeight: theme.typography.fontWeight.medium as any,
-      textShadowColor: 'rgba(0, 0, 0, 0.8)',
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-      padding: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
+    dotsButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.full,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.surfaceLight,
     },
-    storyImageContainer: {
+    scrollContent: {
+      paddingBottom: theme.spacing['2xl'],
+    },
+    hero: {
       marginHorizontal: theme.spacing.lg,
-      marginBottom: theme.spacing.lg,
       borderRadius: theme.borderRadius.xl,
       overflow: 'hidden',
-      position: 'relative',
-    },
-    storyImage: {
-      width: '100%',
+      backgroundColor: theme.colors.surface,
+      ...theme.shadows.lg,
       height: 250,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    imageOverlay: {
+    heroImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
+    },
+    heroPlayButton: {
       position: 'absolute',
-      bottom: theme.spacing.md,
-      right: theme.spacing.md,
-    },
-    playButton: {
       width: 60,
       height: 60,
       borderRadius: 30,
       backgroundColor: theme.colors.primary,
-      alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 4,
-      borderColor: '#FFFFFF',
-      elevation: 6,
-      shadowColor: theme.colors.primary,
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.5,
-      shadowRadius: 6,
-    },
-    storyContent: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing.lg,
-    },
-    contentHeader: {
-      flexDirection: 'row',
       alignItems: 'center',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
+      ...theme.shadows.lg,
     },
-    contentTitle: {
+    name: {
       color: theme.colors.text,
-      fontSize: theme.typography.fontSize.xl,
-      fontWeight: theme.typography.fontWeight.bold as any,
+      fontSize: theme.typography.fontSize['2xl'],
+      fontWeight: theme.typography.fontWeight.extrabold as any,
+      textAlign: 'center',
+      marginTop: theme.spacing.lg,
     },
-    contentText: {
-      color: '#FFFFFF',
+    category: {
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
       fontSize: theme.typography.fontSize.base,
-      lineHeight: theme.typography.lineHeight.relaxed,
-      marginBottom: theme.spacing.lg,
-      fontWeight: theme.typography.fontWeight.medium as any,
-      textShadowColor: 'rgba(0, 0, 0, 0.8)',
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-      padding: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
+      marginTop: theme.spacing.xs,
     },
-    funFacts: {
+    descriptionWrap: {
       paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing.lg,
+      marginTop: theme.spacing.lg,
     },
-    factsHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-      marginBottom: theme.spacing.lg,
-    },
-    factsTitle: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize.xl,
-      fontWeight: theme.typography.fontWeight.bold as any,
-    },
-    factsList: {
-      gap: theme.spacing.md,
-    },
-    factItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-    },
-    factText: {
+    descriptionText: {
       color: theme.colors.textSecondary,
       fontSize: theme.typography.fontSize.base,
+      lineHeight: theme.typography.lineHeight.normal,
     },
-    actionSection: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing['2xl'],
-    },
-    readButton: {
+    ctaRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      gap: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      marginTop: theme.spacing.xl,
+    },
+    ctaButton: {
+      flex: 1,
+      height: 56,
+      borderRadius: theme.borderRadius.lg,
       backgroundColor: theme.colors.primary,
-      paddingVertical: theme.spacing.lg,
-      paddingHorizontal: theme.spacing.lg,
-      borderRadius: theme.borderRadius.xl,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
       gap: theme.spacing.sm,
-      elevation: 4,
-      shadowColor: theme.colors.primary,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
+      ...theme.shadows.md,
     },
-    readButtonText: {
-      color: '#FFFFFF',
-      fontSize: theme.typography.fontSize.lg,
+    ctaText: {
+      color: theme.colors.textInverse,
       fontWeight: theme.typography.fontWeight.bold as any,
+      fontSize: theme.typography.fontSize.base,
     },
-    loadingContainer: {
+    relatedSection: {
+      marginTop: theme.spacing['2xl'],
+      paddingHorizontal: theme.spacing.lg,
+    },
+    relatedList: {
+      paddingVertical: theme.spacing.md,
+    },
+    relatedCard: {
+      width: 120,
+      borderRadius: theme.borderRadius.lg,
+      overflow: 'hidden',
+      backgroundColor: theme.colors.surface,
+      marginRight: theme.spacing.md,
+      ...theme.shadows.sm,
+    },
+    relatedImage: {
+      width: '100%',
+      height: 120,
+      resizeMode: 'cover',
+    },
+    relatedTitle: {
+      color: theme.colors.text,
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.bold as any,
+      padding: theme.spacing.sm,
+    },
+    center: { // Add this style definition
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      gap: theme.spacing.md,
-    },
-    loadingText: {
-      color: theme.colors.textSecondary,
-      fontSize: theme.typography.fontSize.base,
-    },
-    errorContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing.md,
-    },
-    errorText: {
-      color: theme.colors.error,
-      fontSize: theme.typography.fontSize.base,
     },
   });
 
-  if (loading) {
+  if (loading && !selectedDigest) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Story</Text>
-          <View style={styles.headerSpacer} />
+      <ScreenWrapper>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
-        <View style={styles.loadingContainer}>
-          <Animated.View entering={BounceIn.delay(200)}>
-            <Ionicons name="happy" size={48} color={theme.colors.primary} />
-          </Animated.View>
-          <Text style={styles.loadingText}>Loading your story... 🚀</Text>
-        </View>
-      </SafeAreaView>
+      </ScreenWrapper>
     );
   }
 
-  if (!digest) {
+  if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Story</Text>
-          <View style={styles.headerSpacer} />
+      <ScreenWrapper>
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.error }}>Error: {error}</Text>
         </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="sad" size={48} color={theme.colors.error} />
-          <Text style={styles.errorText}>Story not found 😢</Text>
+      </ScreenWrapper>
+    );
+  }
+
+  if (!selectedDigest) {
+    return (
+      <ScreenWrapper>
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.textSecondary }}>Digest not found.</Text>
         </View>
-      </SafeAreaView>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#1a1a1a', '#2d2d2d', '#FFD700']}
-        style={styles.gradientBackground}
-      >
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Story</Text>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-                <Ionicons 
-                  name={isLiked ? "heart" : "heart-outline"} 
-                  size={24} 
-                  color={isLiked ? "#FF6B6B" : theme.colors.text} 
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                <Ionicons name="share-outline" size={24} color={theme.colors.text} />
-              </TouchableOpacity>
-            </View>
+    <ScreenWrapper bottomSafeArea>
+      <Animated.View entering={FadeInDown.delay(120)} style={styles.header}>
+        <TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={handleBack}>
+          <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Digest</Text>
+        <TouchableOpacity style={styles.dotsButton} activeOpacity={0.85} onPress={() => console.log('More options')}>
+          <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.text} />
+        </TouchableOpacity>
+      </Animated.View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <Animated.View entering={FadeInUp.delay(140)} style={styles.hero}>
+          <Image source={{ uri: selectedDigest.image }} style={styles.heroImage} />
+          <TouchableOpacity style={styles.heroPlayButton} activeOpacity={0.8} onPress={handleRead}>
+            <Ionicons name="play" size={32} color={theme.colors.textInverse} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Text style={styles.name}>{selectedDigest.name}</Text>
+        <Text style={styles.category}>{selectedDigest.category}</Text>
+
+        <View style={styles.ctaRow}>
+          <TouchableOpacity style={styles.ctaButton} activeOpacity={0.9} onPress={handleRead}>
+            <Ionicons name="book-outline" size={20} color={theme.colors.textInverse} />
+            <Text style={styles.ctaText}>Read Now</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.descriptionWrap}>
+          <Text style={styles.descriptionText}>{selectedDigest.description || 'No description available for this digest.'}</Text>
+        </View>
+
+        {relatedDigests.length > 0 && (
+          <View style={styles.relatedSection}>
+            <SectionHeader title="More Paigham Digests" />
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={relatedDigests}
+              keyExtractor={(item) => String(item.mid)}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.relatedCard} onPress={() => router.push(`/digest/${item.mid}`)}>
+                  <Image source={{ uri: item.image }} style={styles.relatedImage} />
+                  <Text style={styles.relatedTitle} numberOfLines={2}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.relatedList}
+            />
           </View>
-
-          {/* Story Header Banner */}
-          <Animated.View entering={FadeInDown.delay(200)} style={styles.storyBanner}>
-            <LinearGradient
-              colors={[theme.colors.primary, theme.colors.primaryDark, '#FFD700']}
-              style={styles.bannerGradient}
-            >
-              <View style={styles.bannerContent}>
-                <Ionicons name="color-palette" size={32} color="#FFFFFF" />
-                <Text style={styles.bannerTitle}>🌟 AMAZING STORY 🌟</Text>
-                <Ionicons name="color-palette" size={32} color="#FFFFFF" />
-              </View>
-            </LinearGradient>
-          </Animated.View>
-
-          {/* Story Info */}
-          <Animated.View entering={FadeInUp.delay(300)} style={styles.storyInfo}>
-            <View style={styles.storyMeta}>
-              <View style={styles.ageBadge}>
-                <Text style={styles.ageBadgeText}>5+</Text>
-              </View>
-              <View style={styles.categoryBadge}>
-                <Ionicons name="star" size={16} color="#FFFFFF" />
-                <Text style={styles.categoryBadgeText}>{digest.category}</Text>
-              </View>
-            </View>
-            
-            <Text style={styles.storyTitle}>{digest.name}</Text>
-            <Text style={styles.storyDescription}>{digest.description}</Text>
-          </Animated.View>
-
-          {/* Story Image */}
-          {digest.image && (
-            <Animated.View entering={FadeInUp.delay(400)} style={styles.storyImageContainer}>
-              <Image
-                source={{ uri: digest.image }}
-                style={styles.storyImage}
-                resizeMode="cover"
-              />
-              <View style={styles.imageOverlay}>
-                <View style={styles.playButton}>
-                  <Ionicons name="play" size={32} color="#FFFFFF" />
-                </View>
-              </View>
-            </Animated.View>
-          )}
-
-          {/* Story Content */}
-          <Animated.View entering={FadeInUp.delay(500)} style={styles.storyContent}>
-            <View style={styles.contentHeader}>
-              <Ionicons name="book" size={24} color={theme.colors.primary} />
-              <Text style={styles.contentTitle}>Story Time! 📖</Text>
-            </View>
-            
-            <Text style={styles.contentText}>
-              Once upon a time, in a magical land far, far away, there lived a brave little hero who loved to explore and discover new adventures! 🌟
-            </Text>
-            
-            <Text style={styles.contentText}>
-              Every day, this little hero would wake up with a big smile and ready to face whatever challenges came their way. With friends by their side, nothing seemed impossible! ✨
-            </Text>
-
-            <Text style={styles.contentText}>
-              Together, they learned that friendship, courage, and kindness were the most powerful magic of all. And they lived happily ever after! 🎉
-            </Text>
-          </Animated.View>
-
-          {/* Fun Facts */}
-          <Animated.View entering={FadeInUp.delay(600)} style={styles.funFacts}>
-            <View style={styles.factsHeader}>
-              <Ionicons name="bulb" size={24} color="#FFD700" />
-              <Text style={styles.factsTitle}>Fun Facts! 🎯</Text>
-            </View>
-            
-            <View style={styles.factsList}>
-              <View style={styles.factItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                <Text style={styles.factText}>Perfect for kids aged 5+</Text>
-              </View>
-              <View style={styles.factItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                <Text style={styles.factText}>Educational and fun</Text>
-              </View>
-              <View style={styles.factItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
-                <Text style={styles.factText}>Interactive reading experience</Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Action Buttons */}
-          <Animated.View entering={FadeInUp.delay(700)} style={styles.actionSection}>
-            <TouchableOpacity style={styles.readButton} onPress={handleRead}>
-              <Ionicons name="play-circle" size={24} color="#FFFFFF" />
-              <Text style={styles.readButtonText}>Start Reading! 🚀</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </LinearGradient>
-    </SafeAreaView>
+        )}
+      </ScrollView>
+    </ScreenWrapper>
   );
-} 
+};
+
+export default SingleDigestScreen;

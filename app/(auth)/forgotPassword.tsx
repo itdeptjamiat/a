@@ -66,7 +66,7 @@ export default function ForgotPasswordScreen() {
   });
 
   return (
-    <ScreenWrapper keyboardAvoidingView>
+    <ScreenWrapper keyboardAvoidingView bottomSafeArea>
       <View style={styles.header}>
         <H1 style={styles.title}>Reset Password</H1>
         <Body style={styles.subtitle}>

@@ -59,7 +59,7 @@ export default function VerifyEmailScreen() {
   });
 
   return (
-    <ScreenWrapper keyboardAvoidingView>
+    <ScreenWrapper bottomSafeArea keyboardAvoidingView>
       <View style={styles.header}>
         <H1 style={styles.title}>Verify Email</H1>
         <Body style={styles.subtitle}>

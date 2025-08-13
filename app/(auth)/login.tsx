@@ -182,7 +182,7 @@ export default function LoginScreen() {
   });
 
   return (
-    <ScreenWrapper keyboardAvoidingView keyboardOffset={Platform.OS === 'ios' ? 0 : 20}>
+    <ScreenWrapper bottomSafeArea keyboardAvoidingView keyboardOffset={Platform.OS === 'ios' ? 0 : 20}>
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primaryDark, theme.colors.primaryLight]}
         style={styles.backgroundGradient}

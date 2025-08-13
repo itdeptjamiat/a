@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<CategoryKey>('');
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>('magazines');
 
   const magazines = useSelector(selectMagazines);
   const articles = useSelector(selectArticles);
@@ -123,7 +123,7 @@ export default function HomeScreen() {
               router.push('/(app)/magazine/');
               break;
             case 'digests':
-              // setActiveCategory('digests');
+              router.push('/digest'); // Navigate to the new kid-focused digest home screen
               break;
             case 'articles':
               router.push('/(app)/article/');

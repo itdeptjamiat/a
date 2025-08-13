@@ -1,494 +1,403 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Image, Dimensions } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { ScreenHeader, ScreenWrapper } from '@/components';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
-import { useWindowDimensions } from '@/hooks/useWindowDimensions';
-import { H1, H2, H3, Body } from '@/typography';
+import { ScreenHeader, ScreenWrapper } from '@/components';
+import { CoverCardPortrait } from '@/components/home';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { fetchMagazinesOnly } from '@/redux/actions/magazineActions';
+import { selectMagazines, selectMagazineLoading, selectMagazineError } from '@/redux/selectors/magazineSelectors';
 
-const { width: screenWidth } = Dimensions.get('window');
+type LibraryTab = 'favorites' | 'downloads' | 'recentlyRead' | 'bookmarks';
+type SortOption = 'newArrivals' | 'titleAsc' | 'titleDesc' | 'recentlyRead';
 
-interface LibraryItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  coverImage: string;
-  isFavorite: boolean;
-  progress: number; // 0-100
-  type: 'magazine' | 'article' | 'digest';
-  lastRead?: string;
-  downloadDate?: string;
-}
-
-type LibraryTab = 'favorites' | 'downloads' | 'recently' | 'books';
-
-export default function LibraryScreen() {
+const MyLibraryScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const dispatch = useAppDispatch();
+
   const [activeTab, setActiveTab] = useState<LibraryTab>('favorites');
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [sortOption, setSortOption] = useState<SortOption>('newArrivals');
+  const [showSortOptions, setShowSortOptions] = useState(false);
 
-  const isTablet = screenWidth >= 768;
+  const allMagazines = useAppSelector(selectMagazines); // Using magazines as placeholder for all content types
+  const loading = useAppSelector(selectMagazineLoading);
+  const error = useAppSelector(selectMagazineError);
 
-  // Mock data for library items
-  const libraryItems: LibraryItem[] = [
-    {
-      id: '1',
-      title: 'NATIONAL GEOGRAPHIC TRAVELLER ITALY',
-      subtitle: 'Discover the beauty of Italy',
-      coverImage: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=600&fit=crop',
-      isFavorite: true,
-      progress: 75,
-      type: 'magazine',
-      lastRead: '2024-01-15'
-    },
-    {
-      id: '2',
-      title: 'COUNTRY LIFE',
-      subtitle: 'Georgian glory - The revival of a lost vision',
-      coverImage: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=600&fit=crop',
-      isFavorite: false,
-      progress: 0,
-      type: 'magazine',
-      downloadDate: '2024-01-10'
-    },
-    {
-      id: '3',
-      title: 'TECHNOLOGY WEEKLY',
-      subtitle: 'Latest innovations in AI and Machine Learning',
-      coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=600&fit=crop',
-      isFavorite: true,
-      progress: 45,
-      type: 'magazine',
-      lastRead: '2024-01-12'
-    },
-    {
-      id: '4',
-      title: 'CULINARY ARTS',
-      subtitle: 'Master the art of French cuisine',
-      coverImage: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=600&fit=crop',
-      isFavorite: false,
-      progress: 90,
-      type: 'article',
-      lastRead: '2024-01-14'
-    }
-  ];
+  useEffect(() => {
+    // Fetch all content for demonstration, ideally separate fetches for each tab
+    dispatch(fetchMagazinesOnly(undefined));
+  }, [dispatch]);
 
-  const getFilteredItems = () => {
+  const getFilteredAndSortedContent = useCallback(() => {
+    let content: any[] = [];
     switch (activeTab) {
       case 'favorites':
-        return libraryItems.filter(item => item.isFavorite);
+        // Placeholder: filter allMagazines for some favorites
+        content = allMagazines.filter((_, idx) => idx % 3 === 0);
+        break;
       case 'downloads':
-        return libraryItems.filter(item => item.downloadDate);
-      case 'recently':
-        return libraryItems.filter(item => item.lastRead).sort((a, b) => 
-          new Date(b.lastRead!).getTime() - new Date(a.lastRead!).getTime()
-        );
-      case 'books':
-        return libraryItems.filter(item => item.type === 'magazine');
+        // Placeholder: filter allMagazines for some downloads
+        content = allMagazines.filter((_, idx) => idx % 2 === 0);
+        break;
+      case 'recentlyRead':
+        // Placeholder: empty or some recently read items
+        content = [];
+        break;
+      case 'bookmarks':
+        // Placeholder: filter allMagazines for some bookmarks
+        content = allMagazines.filter((_, idx) => idx % 4 === 0);
+        break;
       default:
-        return libraryItems;
+        content = [];
     }
-  };
 
-  const getTabTitle = (tab: LibraryTab) => {
-    switch (tab) {
-      case 'favorites': return 'Favorites';
-      case 'downloads': return 'Downloads';
-      case 'recently': return 'Recently Read';
-      case 'books': return 'Books';
-      default: return '';
+    switch (sortOption) {
+      case 'newArrivals':
+        return [...content].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      case 'titleAsc':
+        return [...content].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'titleDesc':
+        return [...content].sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+      case 'recentlyRead':
+        // This sort option only makes sense for recentlyRead tab
+        return content; // Already handled by placeholder logic
+      default:
+        return content;
     }
-  };
+  }, [activeTab, sortOption, allMagazines]);
 
-  const getTabIcon = (tab: LibraryTab) => {
-    switch (tab) {
-      case 'favorites': return 'heart';
-      case 'downloads': return 'download';
-      case 'recently': return 'time';
-      case 'books': return 'library';
-      default: return 'book';
+  const displayedContent = getFilteredAndSortedContent();
+
+  const handleToggleEdit = useCallback(() => {
+    setIsEditing((prev) => !prev);
+    setSelectedItems([]); // Clear selections when toggling edit mode
+  }, []);
+
+  const handleSelectItem = useCallback((id: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedItems.length === displayedContent.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(displayedContent.map((item) => item.mid));
     }
-  };
+  }, [selectedItems, displayedContent]);
 
-  const handleItemPress = (item: LibraryItem) => {
-    console.log('🔍 Library item pressed:', item.title);
-    // TODO: Navigate to magazine detail or reader
-  };
+  const handleRemoveSelected = useCallback(() => {
+    // Logic to remove selected items from state/backend
+    console.log('Removing items:', selectedItems);
+    setSelectedItems([]);
+    setIsEditing(false);
+  }, [selectedItems]);
 
-  const handleFavoriteToggle = (item: LibraryItem) => {
-    console.log('🔍 Toggle favorite for:', item.title);
-    // TODO: Update favorite status
-  };
+  const renderContentGrid = useCallback(() => {
+    if (loading) {
+      return (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      );
+    }
+    if (error) {
+      return (
+        <View style={styles.centerContent}>
+          <Text style={{ color: theme.colors.error }}>Error: {error}</Text>
+        </View>
+      );
+    }
+    if (displayedContent.length === 0) {
+      return (
+        <View style={styles.centerContent}>
+          {activeTab === 'recentlyRead' ? (
+            <View style={styles.emptyStateContainer}>
+              <Ionicons name="checkmark-circle" size={48} color={theme.colors.textSecondary} />
+              <Text style={styles.emptyStateTitle}>Recently read</Text>
+              <Text style={styles.emptyStateText}>Once you start reading, titles will appear here – so you don’t lose track.</Text>
+            </View>
+          ) : (
+            <Text style={styles.emptyStateText}>No items in this section.</Text>
+          )}
+        </View>
+      );
+    }
 
-  const handleSortPress = () => {
-    console.log('🔍 Sort button pressed');
-    // TODO: Show sort options
-  };
-
-  const handleEditPress = () => {
-    setIsEditing(!isEditing);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+    return (
+      <FlatList
+        data={displayedContent}
+        keyExtractor={(item) => String(item.mid)}
+        numColumns={2} // Two columns as per screenshots
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.gridItem}
+            onPress={() => {
+              if (isEditing) {
+                handleSelectItem(item.mid);
+              } else {
+                // Navigate to detail page
+                console.log('Navigate to item:', item.name);
+              }
+            }}
+            activeOpacity={0.8}
+          >
+            <CoverCardPortrait item={item} index={0} onPress={() => {}} />
+            {isEditing && (
+              <View style={styles.selectOverlay}>
+                <Ionicons
+                  name={selectedItems.includes(item.mid) ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={24}
+                  color={selectedItems.includes(item.mid) ? theme.colors.primary : theme.colors.textInverse}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.gridContainer}
+      />
+    );
+  }, [loading, error, displayedContent, isEditing, selectedItems, handleSelectItem, activeTab, theme]);
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    header: {
-      paddingHorizontal: isTablet ? theme.spacing['2xl'] : theme.spacing.lg,
-      paddingTop: theme.spacing.lg,
-      paddingBottom: theme.spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    headerLeft: {
-      flex: 1,
-    },
-    title: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize['3xl'],
-      fontWeight: theme.typography.fontWeight.bold as any,
-      marginBottom: theme.spacing.xs,
-    },
-    subtitle: {
-      color: theme.colors.textSecondary,
+    headerRight: {
+      color: theme.colors.primary,
       fontSize: theme.typography.fontSize.base,
-    },
-    profileButton: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: theme.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...theme.shadows.md,
-      elevation: 4,
+      fontWeight: theme.typography.fontWeight.semibold as any,
     },
     tabsContainer: {
-      paddingHorizontal: isTablet ? theme.spacing['2xl'] : theme.spacing.lg,
-      marginBottom: theme.spacing.lg,
-    },
-    tabsRow: {
       flexDirection: 'row',
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.xl,
-      padding: theme.spacing.xs,
-      ...theme.shadows.sm,
-      elevation: 2,
+      justifyContent: 'space-around',
+      paddingVertical: theme.spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
     },
     tabButton: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
-      borderRadius: theme.borderRadius.lg,
-    },
-    tabButtonActive: {
-      backgroundColor: theme.colors.primary,
-    },
-    tabIcon: {
-      marginRight: theme.spacing.xs,
     },
     tabText: {
-      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textSecondary,
+      fontSize: theme.typography.fontSize.base,
       fontWeight: theme.typography.fontWeight.medium as any,
     },
-    tabTextActive: {
-      color: theme.colors.textInverse,
+    activeTabText: {
+      color: theme.colors.text,
+      fontWeight: theme.typography.fontWeight.bold as any,
     },
-    tabTextInactive: {
-      color: theme.colors.textSecondary,
+    activeTabIndicator: {
+      height: 3,
+      backgroundColor: theme.colors.primary,
+      borderRadius: theme.borderRadius.full,
+      position: 'absolute',
+      bottom: 0,
+      left: '20%',
+      right: '20%',
     },
     controlsContainer: {
-      paddingHorizontal: isTablet ? theme.spacing['2xl'] : theme.spacing.lg,
-      marginBottom: theme.spacing.lg,
       flexDirection: 'row',
-      alignItems: 'center',
       justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
     },
     sortButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.lg,
-      ...theme.shadows.sm,
-      elevation: 2,
-    },
-    sortText: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium as any,
-      marginLeft: theme.spacing.xs,
-    },
-    editButton: {
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.primary,
-      borderRadius: theme.borderRadius.lg,
-    },
-    editText: {
-      color: theme.colors.textInverse,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.medium as any,
-    },
-    content: {
-      flex: 1,
-      paddingHorizontal: isTablet ? theme.spacing['2xl'] : theme.spacing.lg,
-    },
-    itemsContainer: {
-      gap: theme.spacing.lg,
-      paddingBottom: theme.spacing.xl,
-    },
-    itemCard: {
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.borderRadius.xl,
-      overflow: 'hidden',
-      ...theme.shadows.lg,
-      elevation: 8,
-    },
-    itemContent: {
-      flexDirection: 'row',
-      padding: theme.spacing.lg,
-    },
-    itemImage: {
-      width: 80,
-      height: 120,
-      borderRadius: theme.borderRadius.lg,
-      marginRight: theme.spacing.lg,
-    },
-    itemDetails: {
-      flex: 1,
-      justifyContent: 'space-between',
-    },
-    itemTitle: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize.lg,
-      fontWeight: theme.typography.fontWeight.bold as any,
-      marginBottom: theme.spacing.xs,
-      lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.lg,
-    },
-    itemSubtitle: {
-      color: theme.colors.textSecondary,
-      fontSize: theme.typography.fontSize.sm,
-      marginBottom: theme.spacing.sm,
-      lineHeight: theme.typography.lineHeight.normal * theme.typography.fontSize.sm,
-    },
-    itemMeta: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    itemDate: {
-      color: theme.colors.textTertiary,
-      fontSize: theme.typography.fontSize.xs,
-    },
-    itemActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.sm,
-    },
-    actionButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.sm,
+      borderRadius: theme.borderRadius.md,
       backgroundColor: theme.colors.surfaceLight,
     },
-    progressContainer: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.success,
+    sortText: {
+      color: theme.colors.textSecondary,
+      fontSize: theme.typography.fontSize.sm,
+      marginLeft: theme.spacing.xs,
     },
-    progressText: {
+    sortOptionModalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    sortOptionModalContent: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.md,
+      width: '80%',
+      maxWidth: 300,
+    },
+    sortOptionItem: {
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    sortOptionText: {
+      color: theme.colors.text,
+      fontSize: theme.typography.fontSize.base,
+    },
+    editBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+    },
+    editButton: {
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.borderRadius.md,
+      backgroundColor: theme.colors.primary,
+    },
+    editButtonText: {
       color: theme.colors.textInverse,
-      fontSize: theme.typography.fontSize.xs,
       fontWeight: theme.typography.fontWeight.bold as any,
     },
-    emptyContainer: {
+    gridContainer: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.xl,
+    },
+    gridItem: {
       flex: 1,
-      alignItems: 'center',
+      margin: theme.spacing.sm,
+      maxWidth: '47%', // Approx half width minus margin
+    },
+    selectOverlay: {
+      position: 'absolute',
+      top: theme.spacing.sm,
+      right: theme.spacing.sm,
+      backgroundColor: 'rgba(255,255,255,0.7)',
+      borderRadius: theme.borderRadius.full,
+      padding: 2,
+    },
+    centerContent: {
+      flex: 1,
       justifyContent: 'center',
-      paddingHorizontal: theme.spacing.xl,
+      alignItems: 'center',
+      padding: theme.spacing.lg,
     },
-    emptyIcon: {
-      marginBottom: theme.spacing.lg,
+    emptyStateContainer: {
+      alignItems: 'center',
+      paddingVertical: theme.spacing.xl,
     },
-    emptyTitle: {
+    emptyStateTitle: {
       color: theme.colors.text,
-      marginBottom: theme.spacing.sm,
-      textAlign: 'center',
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: theme.typography.fontWeight.bold as any,
+      marginTop: theme.spacing.md,
     },
-    emptySubtitle: {
+    emptyStateText: {
       color: theme.colors.textSecondary,
+      fontSize: theme.typography.fontSize.base,
       textAlign: 'center',
+      marginTop: theme.spacing.sm,
+      maxWidth: '80%',
     },
   });
 
-  const filteredItems = getFilteredItems();
-
   return (
     <ScreenWrapper>
-      {/* Header */}
-      <ScreenHeader title="Library" />
+      <ScreenHeader
+        title="My Library"
+        rightContent={isEditing ? (
+          <TouchableOpacity onPress={handleToggleEdit}>
+            <Text style={styles.headerRight}>Cancel</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={handleToggleEdit}>
+            <Text style={styles.headerRight}>Edit</Text>
+          </TouchableOpacity>
+        )}
+      />
 
-      {/* Tabs */}
-      <Animated.View entering={FadeInDown.delay(300)} style={styles.tabsContainer}>
-        <View style={styles.tabsRow}>
-          {(['favorites', 'downloads', 'recently', 'books'] as LibraryTab[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[
-                styles.tabButton,
-                activeTab === tab && styles.tabButtonActive
-              ]}
-              onPress={() => setActiveTab(tab)}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={getTabIcon(tab) as any}
-                size={16}
-                color={activeTab === tab ? theme.colors.textInverse : theme.colors.textSecondary}
-                style={styles.tabIcon}
-              />
-              <Text style={[
-                styles.tabText,
-                activeTab === tab ? styles.tabTextActive : styles.tabTextInactive
-              ]}>
-                {getTabTitle(tab)}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity style={styles.tabButton} onPress={() => setActiveTab('favorites')}>
+          <Text style={[styles.tabText, activeTab === 'favorites' && styles.activeTabText]}>Favorites</Text>
+          {activeTab === 'favorites' && <View style={styles.activeTabIndicator} />}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabButton} onPress={() => setActiveTab('downloads')}>
+          <Text style={[styles.tabText, activeTab === 'downloads' && styles.activeTabText]}>Downloads</Text>
+          {activeTab === 'downloads' && <View style={styles.activeTabIndicator} />}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabButton} onPress={() => setActiveTab('recentlyRead')}>
+          <Text style={[styles.tabText, activeTab === 'recentlyRead' && styles.activeTabText]}>Recently read</Text>
+          {activeTab === 'recentlyRead' && <View style={styles.activeTabIndicator} />}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabButton} onPress={() => setActiveTab('bookmarks')}>
+          <Text style={[styles.tabText, activeTab === 'bookmarks' && styles.activeTabText]}>Bookmarks</Text>
+          {activeTab === 'bookmarks' && <View style={styles.activeTabIndicator} />}
+        </TouchableOpacity>
         </View>
-      </Animated.View>
-
-      {/* Controls */}
-      <Animated.View entering={FadeInDown.delay(400)} style={styles.controlsContainer}>
-        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
-          <Ionicons name="funnel-outline" size={16} color={theme.colors.text} />
-          <Text style={styles.sortText}>Sort By New Arrivals</Text>
-        </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={[styles.editButton, isEditing && { backgroundColor: theme.colors.error }]} 
-          onPress={handleEditPress}
-        >
-          <Text style={styles.editText}>
-            {isEditing ? 'Done' : 'Edit'}
-          </Text>
+      <View style={styles.controlsContainer}>
+        {!isEditing && (
+          <TouchableOpacity style={styles.sortButton} onPress={() => setShowSortOptions(true)}>
+            <Ionicons name="filter" size={16} color={theme.colors.textSecondary} />
+            <Text style={styles.sortText}>Sort By {sortOption === 'newArrivals' ? 'New Arrivals' : sortOption === 'titleAsc' ? 'Title (A-Z)' : sortOption === 'titleDesc' ? 'Title (Z-A)' : 'Recently read'}</Text>
         </TouchableOpacity>
-      </Animated.View>
+        )}
+        {isEditing && (
+          <TouchableOpacity onPress={handleSelectAll}>
+            <Text style={styles.headerRight}>{selectedItems.length === displayedContent.length ? 'Deselect all' : 'Select all'}</Text>
+            </TouchableOpacity>
+        )}
+        </View>
 
-      {/* Content */}
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredItems.length > 0 ? (
-          <View style={styles.itemsContainer}>
-            {filteredItems.map((item, index) => (
-              <Animated.View
-                key={item.id}
-                entering={FadeInUp.delay(500 + index * 100)}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {renderContentGrid()}
+      </ScrollView>
+
+      {isEditing && (
+        <View style={styles.editBar}>
+          <Text style={styles.tabText}>{selectedItems.length} selected</Text>
+        <TouchableOpacity 
+            style={[styles.editButton, selectedItems.length === 0 && { opacity: 0.5 }]} // Dim if no items selected
+            onPress={handleRemoveSelected}
+            disabled={selectedItems.length === 0}
+        >
+            <Ionicons name="trash-outline" size={20} color={theme.colors.textInverse} />
+            <Text style={styles.editButtonText}>Remove ({selectedItems.length})</Text>
+        </TouchableOpacity>
+        </View>
+      )}
+
+      <Modal
+        transparent={true}
+        visible={showSortOptions}
+        onRequestClose={() => setShowSortOptions(false)}
+        animationType="fade"
               >
                 <TouchableOpacity
-                  style={styles.itemCard}
-                  onPress={() => handleItemPress(item)}
-                  activeOpacity={0.9}
-                >
-                  <View style={styles.itemContent}>
-                    <Image 
-                      source={{ uri: item.coverImage }} 
-                      style={styles.itemImage}
-                    />
-                    
-                    <View style={styles.itemDetails}>
-                      <View>
-                        <Text style={styles.itemTitle} numberOfLines={2}>
-                          {item.title}
-                        </Text>
-                        <Text style={styles.itemSubtitle} numberOfLines={2}>
-                          {item.subtitle}
-                        </Text>
-                      </View>
-                      
-                      <View style={styles.itemMeta}>
-                        <Text style={styles.itemDate}>
-                          {item.lastRead ? formatDate(item.lastRead) : 
-                           item.downloadDate ? formatDate(item.downloadDate) : ''}
-                        </Text>
-                        
-                        <View style={styles.itemActions}>
+          style={styles.sortOptionModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSortOptions(false)}
+        >
+          <View style={styles.sortOptionModalContent}>
+            {['newArrivals', 'titleAsc', 'titleDesc', 'recentlyRead'].map((option) => (
                           <TouchableOpacity 
-                            style={styles.actionButton}
-                            onPress={() => handleFavoriteToggle(item)}
-                          >
-                            <Ionicons
-                              name={item.isFavorite ? 'heart' : 'heart-outline'}
-                              size={16}
-                              color={item.isFavorite ? theme.colors.error : theme.colors.textSecondary}
-                            />
-                          </TouchableOpacity>
-                          
-                          {item.progress > 0 ? (
-                            <View style={styles.progressContainer}>
-                              <Text style={styles.progressText}>
-                                {item.progress}%
+                key={option}
+                style={styles.sortOptionItem}
+                onPress={() => {
+                  setSortOption(option as SortOption);
+                  setShowSortOptions(false);
+                }}
+              >
+                <Text style={[styles.sortOptionText, sortOption === option && { fontWeight: theme.typography.fontWeight.bold as any }]}>
+                  {option === 'newArrivals' ? 'New Arrivals' : option === 'titleAsc' ? 'Title (A-Z)' : option === 'titleDesc' ? 'Title (Z-A)' : 'Recently read'}
                               </Text>
-                            </View>
-                          ) : (
-                            <View style={styles.actionButton}>
-                              <Ionicons
-                                name="ellipsis-horizontal"
-                                size={16}
-                                color={theme.colors.textSecondary}
-                              />
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-                  </View>
                 </TouchableOpacity>
-              </Animated.View>
             ))}
           </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name={getTabIcon(activeTab) as any}
-              size={64}
-              color={theme.colors.textTertiary}
-              style={styles.emptyIcon}
-            />
-            <H2 style={styles.emptyTitle}>No {getTabTitle(activeTab).toLowerCase()} yet</H2>
-            <Body style={styles.emptySubtitle}>
-              {activeTab === 'favorites' && 'Start adding items to your favorites'}
-              {activeTab === 'downloads' && 'Download some magazines to read offline'}
-              {activeTab === 'recently' && 'Your reading history will appear here'}
-              {activeTab === 'books' && 'Your book collection will appear here'}
-            </Body>
-          </View>
-        )}
-      </ScrollView>
+        </TouchableOpacity>
+      </Modal>
     </ScreenWrapper>
   );
-}
+};
+
+export default MyLibraryScreen;
