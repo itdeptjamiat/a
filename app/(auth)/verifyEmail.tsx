@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/context/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -11,7 +10,7 @@ import { selectAuthLoading } from '@/redux/selectors';
 import { verifyEmail } from '@/redux/actions/authActions';
 import { FormProvider } from '@/form/FormProvider';
 import { TextField } from '@/form/TextField';
-import { CustomButton } from '@/components/CustomButton';
+import { CustomButton, ScreenWrapper } from '@/components';
 import { H1, Body } from '@/typography';
 import { verifyEmailSchema, VerifyEmailFormData } from '@/form/schemas/authSchema';
 
@@ -60,7 +59,7 @@ export default function VerifyEmailScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper keyboardAvoidingView>
       <View style={styles.header}>
         <H1 style={styles.title}>Verify Email</H1>
         <Body style={styles.subtitle}>
@@ -94,7 +93,7 @@ export default function VerifyEmailScreen() {
           loading={loading}
         />
       </FormProvider>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
 

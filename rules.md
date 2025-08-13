@@ -366,6 +366,68 @@ src/
 
 ---
 
+### 8.5. 🖥️ Screen Management Requirements:
+
+#### Mandatory ScreenWrapper Usage:
+- **ALL screens must use ScreenWrapper** instead of SafeAreaView
+- **No direct SafeAreaView imports** allowed in any screen files
+- **Import ScreenWrapper** from `@/components` (not direct path)
+- **Use appropriate props** based on screen type:
+  - Regular screens: `<ScreenWrapper>`
+  - Form screens: `<ScreenWrapper keyboardAvoidingView>`
+  - Bottom safe area needed: `<ScreenWrapper bottomSafeArea>`
+
+#### ScreenWrapper Props:
+```typescript
+interface ScreenWrapperProps {
+  children: React.ReactNode;
+  style?: ViewStyle;
+  bottomSafeArea?: boolean;        // Default: false
+  keyboardAvoidingView?: boolean;  // Default: false
+  keyboardOffset?: number;         // Default: 0
+}
+```
+
+#### Required Usage Patterns:
+```typescript
+// ✅ CORRECT - Regular screen
+<ScreenWrapper>
+  <YourContent />
+</ScreenWrapper>
+
+// ✅ CORRECT - Form screen with keyboard handling
+<ScreenWrapper keyboardAvoidingView keyboardOffset={20}>
+  <YourForm />
+</ScreenWrapper>
+
+// ✅ CORRECT - Screen with bottom safe area
+<ScreenWrapper bottomSafeArea>
+  <YourContent />
+</ScreenWrapper>
+
+// ❌ INCORRECT - Direct SafeAreaView usage
+import { SafeAreaView } from 'react-native-safe-area-context';
+<SafeAreaView>
+  <YourContent />
+</SafeAreaView>
+```
+
+#### ScreenWrapper Benefits:
+- **Consistent behavior** across all screens
+- **Automatic theme integration** with background colors
+- **Platform-specific keyboard handling** (iOS padding, Android height)
+- **Flexible safe area control** (top only or top + bottom)
+- **Centralized screen management** for easier maintenance
+
+#### Migration Requirements:
+- **All existing screens** must be updated to use ScreenWrapper
+- **Remove all SafeAreaView imports** from screen files
+- **Update component imports** to use `@/components` index
+- **Test keyboard behavior** on both iOS and Android
+- **Verify safe area handling** on different device types
+
+---
+
 ### 9. 📱 Responsive Design Requirements:
 
 #### Mandatory Responsive Patterns:
@@ -431,6 +493,12 @@ src/
 - ❌ No custom navigation bars - use standard Expo Router layouts
 - ❌ No direct WebView usage without proper error handling
 - ❌ No payment processing without secure WebView implementation
+
+#### Screen Management Patterns:
+- ❌ No direct SafeAreaView usage - must use ScreenWrapper
+- ❌ No manual KeyboardAvoidingView - use ScreenWrapper keyboardAvoidingView prop
+- ❌ No inline safe area handling - use ScreenWrapper props
+- ❌ No custom screen wrapper components - use centralized ScreenWrapper
 
 ---
 
@@ -500,6 +568,10 @@ ai_enforcement:
     - missing_theme_integration
     - direct_style_objects
     - non_theme_aware_components
+    - direct_safe_area_view_usage
+    - manual_keyboard_avoiding_view
+    - custom_screen_wrapper_components
+    - missing_screen_wrapper_usage
 ```
 
 ---

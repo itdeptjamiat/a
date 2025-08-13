@@ -51,6 +51,52 @@ export const fetchMagazines = createAsyncThunk(
   }
 );
 
+// Separate calls for each content type (prepares for future body-based APIs)
+export const fetchMagazinesOnly = createAsyncThunk(
+  'magazine/fetchMagazinesOnly',
+  async (payload: Record<string, any> | undefined, { rejectWithValue }) => {
+    try {
+      const response = await APIIns.get<MagazineResponse>('/user/magzines');
+      if (!response.data.success) throw new Error(response.data.message || 'Failed');
+      return response.data.data.filter((m) => m.magzineType === 'magzine');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch magazines';
+      Toast.show({ type: 'error', text1: 'Fetch Failed', text2: message });
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const fetchArticlesOnly = createAsyncThunk(
+  'magazine/fetchArticlesOnly',
+  async (payload: Record<string, any> | undefined, { rejectWithValue }) => {
+    try {
+      const response = await APIIns.get<MagazineResponse>('/user/magzines');
+      if (!response.data.success) throw new Error(response.data.message || 'Failed');
+      return response.data.data.filter((m) => m.magzineType === 'article');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch articles';
+      Toast.show({ type: 'error', text1: 'Fetch Failed', text2: message });
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const fetchDigestsOnly = createAsyncThunk(
+  'magazine/fetchDigestsOnly',
+  async (payload: Record<string, any> | undefined, { rejectWithValue }) => {
+    try {
+      const response = await APIIns.get<MagazineResponse>('/user/magzines');
+      if (!response.data.success) throw new Error(response.data.message || 'Failed');
+      return response.data.data.filter((m) => m.magzineType === 'digest');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch digests';
+      Toast.show({ type: 'error', text1: 'Fetch Failed', text2: message });
+      return rejectWithValue(message);
+    }
+  }
+);
+
 export const fetchMagazineDetail = createAsyncThunk(
   'magazine/fetchMagazineDetail',
   async (magazineId: string, { rejectWithValue }) => {

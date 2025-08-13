@@ -57,7 +57,21 @@ EchoReads/
 │   │   └── ThemeContext.tsx      # Theme provider & hook
 │   ├── hooks/             # Custom hooks
 │   ├── components/        # UI components
-│   │   └── CustomButton.tsx      # Themed button component
+│   │   ├── CustomButton.tsx      # Themed button component
+│   │   ├── ScreenWrapper.tsx     # Global screen wrapper with safe area & keyboard handling
+│   │   ├── ScreenHeader.tsx      # Reusable header for tab screens
+│   │   ├── PostCard.tsx          # Content display card
+│   │   ├── SearchBar.tsx         # Search input component
+│   │   ├── ButtonSelectorGroup.tsx # Button group selector
+│   │   └── home/                 # Home screen specific components
+│   │       ├── SectionHeader.tsx # Section title with optional "See All" button
+│   │       ├── ContentCarousel.tsx # Horizontal content slider
+│   │       ├── CategoryTabs.tsx  # Top navigation tabs
+│   │       ├── FeaturedHero.tsx  # Featured content display
+│   │       ├── CoverCardPortrait.tsx # Portrait cover image card
+│   │       ├── ArticleRowCard.tsx # Article row display
+│   │       ├── CategoryGrid.tsx  # 2x3 category grid
+│   │       └── MasonryGrid.tsx   # 3x2 content grid
 │   ├── typography/        # Typography system
 │   │   └── index.tsx             # Text components (H1-H6, Body, etc.)
 │   └── services/          # External services
@@ -121,6 +135,34 @@ EchoReads/
 - **Typography scale** with proper line heights
 - **Shadow system** for elevation effects
 
+## 🖥️ Screen Management
+
+### ScreenWrapper Component
+- **Global replacement** for SafeAreaView across all screens
+- **Optional bottom safe area** with `bottomSafeArea` prop
+- **Keyboard avoiding view** with `keyboardAvoidingView` prop
+- **Customizable keyboard offset** for platform-specific behavior
+- **Theme integration** with automatic background color
+- **Consistent behavior** across iOS and Android
+
+### Usage Examples
+```typescript
+// Basic usage (top safe area only)
+<ScreenWrapper>
+  <YourContent />
+</ScreenWrapper>
+
+// With bottom safe area
+<ScreenWrapper bottomSafeArea>
+  <YourContent />
+</ScreenWrapper>
+
+// With keyboard avoiding view (for forms)
+<ScreenWrapper keyboardAvoidingView keyboardOffset={20}>
+  <YourForm />
+</ScreenWrapper>
+```
+
 ### Usage
 ```typescript
 const { theme } = useTheme();
@@ -140,10 +182,27 @@ const styles = StyleSheet.create({
 
 ## 📱 Component System
 
-### Form Components
+### Core UI Components
+- **ScreenWrapper** - Global screen wrapper with safe area handling and optional keyboard avoiding view
+- **ScreenHeader** - Reusable header component for tab screens with profile integration
 - **FormProvider** - React Hook Form wrapper
 - **TextField** - Themed input with validation
 - **CustomButton** - Animated button with variants (primary, gradient, ghost)
+
+### Content Display Components
+- **PostCard** - General-purpose content display card
+- **CoverCardPortrait** - Portrait-oriented cover image card for magazines/digests
+- **ArticleRowCard** - Row-style display for articles
+- **SearchBar** - Themed search input component
+- **ButtonSelectorGroup** - Interactive button group selector
+
+### Home Screen Components
+- **SectionHeader** - Section title with optional "See All" button
+- **ContentCarousel** - Horizontal content slider with ScrollView-based navigation
+- **CategoryTabs** - Top navigation tabs for content filtering
+- **FeaturedHero** - Prominent featured content display
+- **CategoryGrid** - 2x3 grid layout for categories
+- **MasonryGrid** - 3x2 grid layout for content items
 
 ### Typography Components
 - **H1-H6** - Semantic heading components
@@ -154,6 +213,7 @@ const styles = StyleSheet.create({
 - All components use `useTheme()` hook
 - No hardcoded colors or spacing values
 - Consistent animation patterns with Reanimated
+- Responsive design with useWindowDimensions hook
 
 ## 🗃️ Redux Store Shape
 

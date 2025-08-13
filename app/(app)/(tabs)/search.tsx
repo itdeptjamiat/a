@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, TextInput, Image, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ScreenHeader, ScreenWrapper } from '@/components';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -303,20 +303,9 @@ export default function ExploreScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper>
       {/* Header */}
-      <Animated.View entering={FadeInDown.delay(200)} style={styles.header}>
-        <View style={styles.headerLeft}>
-          <H1 style={styles.title}>Explore</H1>
-          <Body style={styles.subtitle}>Discover amazing content</Body>
-        </View>
-        
-        <TouchableOpacity style={styles.profileButton}>
-          <Text style={{ color: theme.colors.textInverse, fontSize: 18, fontWeight: 'bold' }}>
-            H
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <ScreenHeader title="Explore" />
 
       {/* Search Bar */}
       <Animated.View entering={FadeInDown.delay(300)} style={styles.searchContainer}>
@@ -394,6 +383,6 @@ export default function ExploreScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

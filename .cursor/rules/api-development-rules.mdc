@@ -1,0 +1,93 @@
+# EchoReads API Development Rules
+
+## 📡 HTTP Client Requirements
+
+**ALL API calls MUST use EchoInstance:**
+
+```typescript
+// ✅ CORRECT - Using EchoInstance
+import { APIIns } from '@/axios/EchoInstance';
+
+export const fetchData = createAsyncThunk(
+  'module/fetchData',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const response = await APIIns.get('/endpoint', { params });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch');
+    }
+  }
+);
+
+// ❌ INCORRECT - Direct axios usage
+import axios from 'axios';
+const response = await axios.get('/endpoint');
+```
+
+## 🔐 Authentication Integration
+
+- **Use attachAuthToken() function** for setting JWT tokens
+- **Import APIIns from EchoInstance.ts** - never create new instances
+- **Handle 401 errors globally** via Axios interceptors
+- **Use selectToken selector** to get token from Redux state
+
+## 🌐 API Configuration
+
+- **Base URL configured in EchoInstance.ts** - don't hardcode URLs
+- **Headers configured automatically** - don't set manually
+- **Interceptors handle auth and errors** - don't duplicate logic
+- **Use consistent error handling** across all API calls
+
+## 🚫 Prohibited Patterns
+
+- ❌ No direct axios imports or usage
+- ❌ No custom HTTP client creation
+- ❌ No hardcoded API URLs
+- ❌ No manual header management
+- ❌ No duplicate error handling logic
+- ❌ No custom authentication logic
+
+## ✅ Required Patterns
+
+- ✅ Use APIIns from EchoInstance.ts
+- ✅ Use createAsyncThunk for all API calls
+- ✅ Handle errors with rejectWithValue
+- ✅ Use consistent error message format
+- ✅ Import from EchoInstance.ts
+- ✅ Follow existing API patterns
+
+## 🔍 Before Making API Calls
+
+1. **Check existing API implementations** for patterns
+2. **Use APIIns from EchoInstance.ts**
+3. **Use createAsyncThunk for async operations**
+4. **Handle errors consistently**
+5. **Follow error message format**
+
+## 📚 API Documentation
+
+- **Document all endpoints** with expected request/response formats
+- **Include error handling examples** for common scenarios
+- **Document authentication requirements** for protected endpoints
+- **Provide usage examples** for complex API calls
+
+## 🎯 Error Handling Standards
+
+- **Use rejectWithValue for all errors** in async thunks
+- **Provide user-friendly error messages** from API responses
+- **Handle network errors gracefully** with fallback messages
+- **Log errors appropriately** for debugging
+
+## 🔄 API Response Handling
+
+- **Always destructure response.data** from API calls
+- **Handle different response formats** consistently
+- **Validate response structure** before using data
+- **Transform data as needed** in selectors, not actions
+
+Remember: All API calls must use EchoInstance. Never use axios directly or create custom HTTP clients.
+description:
+globs:
+alwaysApply: false
+---

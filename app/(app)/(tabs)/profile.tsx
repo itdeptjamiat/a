@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Image, Switch, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ScreenHeader, ScreenWrapper } from '@/components';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -272,9 +272,10 @@ export default function ProfileScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
+        <ScreenHeader title="Profile" />
         <Animated.View entering={FadeInDown.delay(200)} style={styles.header}>
           <View style={styles.profileSection}>
             <View style={styles.profileImageContainer}>
@@ -394,6 +395,6 @@ export default function ProfileScreen() {
           </Text>
         </Animated.View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

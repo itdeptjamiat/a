@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, Dimensions, Platform } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +13,7 @@ import { selectAuthLoading, selectAuthError, selectToken, selectIsAuthenticated 
 import { loginUser } from '@/redux/actions/authActions';
 import { FormProvider } from '@/form/FormProvider';
 import { TextField } from '@/form/TextField';
-import { CustomButton } from '@/components/CustomButton';
+import { CustomButton, ScreenWrapper } from '@/components';
 import { H1, Body } from '@/typography';
 import { loginSchema, LoginFormData } from '@/form/schemas/authSchema';
 import { useWindowDimensions } from '@/hooks/useWindowDimensions';
@@ -183,7 +182,7 @@ export default function LoginScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper keyboardAvoidingView keyboardOffset={Platform.OS === 'ios' ? 0 : 20}>
       <LinearGradient
         colors={[theme.colors.primary, theme.colors.primaryDark, theme.colors.primaryLight]}
         style={styles.backgroundGradient}
@@ -192,19 +191,14 @@ export default function LoginScreen() {
         locations={[0, 0.5, 1]}
       />
       
-      <KeyboardAvoidingView 
+      <ScrollView 
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
       >
-        <ScrollView 
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
-        >
           <Animated.View entering={FadeInDown.delay(200)} style={styles.header}>
             <View style={styles.logoWrapper}>
               <LinearGradient
@@ -285,7 +279,6 @@ export default function LoginScreen() {
             </Body>
           </Animated.View>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { fetchMagazines, fetchMagazineDetail } from '@/redux/actions/magazineActions';
+import { fetchMagazines, fetchMagazineDetail, fetchMagazinesOnly, fetchArticlesOnly, fetchDigestsOnly } from '@/redux/actions/magazineActions';
 
 export interface Magazine {
   _id: string;
@@ -92,6 +92,51 @@ const magazineSlice = createSlice({
       .addCase(fetchMagazineDetail.rejected, (state, action) => {
         state.detailLoading = false;
         state.error = action.payload as string || 'Failed to fetch magazine details';
+      });
+
+    // Magazines only
+    builder
+      .addCase(fetchMagazinesOnly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMagazinesOnly.fulfilled, (state, action: PayloadAction<Magazine[]>) => {
+        state.loading = false;
+        state.magazines = action.payload;
+      })
+      .addCase(fetchMagazinesOnly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Articles only
+    builder
+      .addCase(fetchArticlesOnly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchArticlesOnly.fulfilled, (state, action: PayloadAction<Magazine[]>) => {
+        state.loading = false;
+        state.articles = action.payload;
+      })
+      .addCase(fetchArticlesOnly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Digests only
+    builder
+      .addCase(fetchDigestsOnly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDigestsOnly.fulfilled, (state, action: PayloadAction<Magazine[]>) => {
+        state.loading = false;
+        state.digests = action.payload;
+      })
+      .addCase(fetchDigestsOnly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

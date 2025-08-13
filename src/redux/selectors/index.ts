@@ -67,4 +67,4 @@ export {
 } from './magazineSelectors';
 
 // Magazine actions
-export { fetchMagazines } from '@/redux/actions/magazineActions';
+export { fetchMagazines, fetchMagazinesOnly, fetchArticlesOnly, fetchDigestsOnly } from '@/redux/actions/magazineActions';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Image, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ScreenHeader, ScreenWrapper } from '@/components';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/context/ThemeContext';
@@ -346,20 +346,9 @@ export default function LibraryScreen() {
   const filteredItems = getFilteredItems();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenWrapper>
       {/* Header */}
-      <Animated.View entering={FadeInDown.delay(200)} style={styles.header}>
-        <View style={styles.headerLeft}>
-          <H1 style={styles.title}>My Library</H1>
-          <Body style={styles.subtitle}>Your personal collection</Body>
-        </View>
-        
-        <TouchableOpacity style={styles.profileButton}>
-          <Text style={{ color: theme.colors.textInverse, fontSize: 18, fontWeight: 'bold' }}>
-            H
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <ScreenHeader title="Library" />
 
       {/* Tabs */}
       <Animated.View entering={FadeInDown.delay(300)} style={styles.tabsContainer}>
@@ -500,6 +489,6 @@ export default function LibraryScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }
