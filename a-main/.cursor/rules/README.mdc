@@ -1,0 +1,130 @@
+# EchoReads Cursor Rules Guide
+
+## 📚 Overview
+
+This directory contains Cursor rules that enforce strict compliance with EchoReads development standards. These rules are automatically applied based on file types and ensure consistent code quality across the entire project.
+
+## 🎯 Available Rules
+
+### 1. **Core Rules** (`echoreads-core-rules.mdc`)
+- **Always applies** to all files
+- Contains fundamental development patterns
+- Enforces project structure and technology choices
+- **READ THIS FIRST** before making any changes
+
+### 2. **Screen Development** (`screen-development-rules.mdc`)
+- Applies to: `app/**/*.tsx`, `app/**/*.ts`
+- Enforces ScreenWrapper usage instead of SafeAreaView
+- Ensures proper screen structure and imports
+- Mandates theme integration and responsive design
+
+### 3. **Component Development** (`component-development-rules.mdc`)
+- Applies to: `src/components/**/*.tsx`, `src/components/**/*.ts`
+- Enforces theme system usage for all components
+- Mandates Reanimated for animations
+- Ensures responsive design and proper styling
+
+### 4. **Redux Development** (`redux-development-rules.mdc`)
+- Applies to: `src/redux/**/*.ts`, `src/redux/**/*.tsx`
+- Enforces Redux Toolkit usage
+- Mandates proper async thunk patterns
+- Ensures correct file structure and selector patterns
+
+### 5. **Form Development** (`form-development-rules.mdc`)
+- Applies to: Form files and authentication screens
+- Enforces React Hook Form + Zod usage
+- Mandates FormProvider and TextField components
+- Ensures proper keyboard handling and theme integration
+
+### 6. **API Development** (`api-development-rules.mdc`)
+- Applies to: API-related files and Redux actions
+- Enforces EchoInstance usage for all HTTP calls
+- Mandates proper error handling patterns
+- Ensures consistent API integration
+
+## 🚨 Critical Requirements
+
+### Before Making ANY Changes:
+1. **Read [rules.md](mdc:rules.md) completely** - this is the source of truth
+2. **Check existing implementations** for patterns
+3. **Use only approved technologies** listed in rules.md
+4. **Follow the exact file structure** defined in rules.md
+
+### Mandatory Patterns:
+- ✅ **ScreenWrapper** instead of SafeAreaView
+- ✅ **useTheme()** for all styling
+- ✅ **Redux Toolkit** for state management
+- ✅ **React Hook Form + Zod** for forms
+- ✅ **EchoInstance** for all API calls
+- ✅ **Reanimated** for animations
+
+### Prohibited Patterns:
+- ❌ **No hardcoded colors or spacing**
+- ❌ **No inline styles**
+- ❌ **No direct SafeAreaView usage**
+- ❌ **No custom HTTP clients**
+- ❌ **No business logic in /app folder**
+
+## 🔍 How to Use These Rules
+
+### For Cursor AI:
+- These rules are automatically applied based on file types
+- The AI will enforce these patterns when suggesting code
+- Violations will be flagged and corrected automatically
+
+### For Developers:
+- Read the appropriate rule file before working on specific areas
+- Follow the patterns exactly as specified
+- Check existing implementations for examples
+- Update documentation after making changes
+
+## 📖 Documentation Requirements
+
+### When Adding New Features:
+- **Update README.md** with new functionality
+- **Update rules.md** with new patterns
+- **Update store shape** when adding Redux modules
+- **Document all new components** and their usage
+
+### When Modifying Existing Code:
+- **Follow existing patterns** exactly
+- **Maintain consistency** with current implementations
+- **Update documentation** if patterns change
+- **Test thoroughly** before committing
+
+## ⚠️ Enforcement
+
+These rules are **strictly enforced** and violations will cause:
+- **TypeScript compilation errors**
+- **Inconsistent behavior** across the app
+- **Maintenance difficulties** for future developers
+- **Potential security vulnerabilities**
+
+## 🆘 Getting Help
+
+### When Rules Are Unclear:
+1. **Check [rules.md](mdc:rules.md) first**
+2. **Look at existing implementations** for examples
+3. **Follow the enforced patterns** exactly as specified
+4. **Use only approved technologies** listed in Required Technologies
+
+### When Rules Need Updates:
+1. **Update [rules.md](mdc:rules.md) first**
+2. **Update relevant Cursor rules** in this directory
+3. **Update README.md** with new information
+4. **Test thoroughly** before committing changes
+
+## 📋 Quick Reference
+
+- **Screens**: Use ScreenWrapper, import from @/components
+- **Components**: Use useTheme(), StyleSheet.create(), Reanimated
+- **Redux**: Use Redux Toolkit, createAsyncThunk, createSelector
+- **Forms**: Use FormProvider, TextField, Zod schemas
+- **API**: Use EchoInstance, APIIns, createAsyncThunk
+- **Styling**: Use theme system, no hardcoded values
+
+Remember: **Always read [rules.md](mdc:rules.md) first** before making any changes. These Cursor rules are secondary to the main rules file.
+description:
+globs:
+alwaysApply: false
+---

@@ -1,0 +1,92 @@
+# EchoReads Screen Development Rules
+
+## 🚨 MANDATORY: ScreenWrapper Usage
+
+**ALL screen files MUST use ScreenWrapper instead of SafeAreaView:**
+
+```typescript
+// ✅ CORRECT - Import from @/components
+import { ScreenWrapper } from '@/components';
+
+// ✅ CORRECT - Regular screen
+<ScreenWrapper>
+  <YourContent />
+</ScreenWrapper>
+
+// ✅ CORRECT - Form screen with keyboard handling
+<ScreenWrapper keyboardAvoidingView keyboardOffset={20}>
+  <YourForm />
+</ScreenWrapper>
+
+// ✅ CORRECT - Screen with bottom safe area
+<ScreenWrapper bottomSafeArea>
+  <YourContent />
+</ScreenWrapper>
+
+// ❌ INCORRECT - Direct SafeAreaView usage
+import { SafeAreaView } from 'react-native-safe-area-context';
+<SafeAreaView>
+  <YourContent />
+</SafeAreaView>
+```
+
+## 📁 Screen File Rules
+
+- **ONLY screens go in `/app` folder** - NO business logic, components, or utilities
+- **Import components from `@/components`** - not direct paths
+- **Use ScreenHeader component** for tab screens with profile integration
+- **Follow the exact folder structure** defined in [rules.md](mdc:rules.md)
+
+## 🎨 Theme Integration
+
+- **Always use `useTheme()` hook** for styling
+- **Never use hardcoded colors** - use theme.colors
+- **Never use hardcoded spacing** - use theme.spacing
+- **Use StyleSheet.create()** for all styles
+
+## 🔄 Component Usage
+
+- **Use existing EchoReads components** - don't create new ones
+- **Import from `@/components` index** for consistency
+- **Use ScreenHeader for tab screens** - provides profile integration
+- **Use appropriate ScreenWrapper props** based on screen type
+
+## 📱 Responsive Design
+
+- **Use flex-based layouts** for all screens
+- **Handle different screen sizes** with useWindowDimensions hook
+- **Ensure touch targets are minimum 44px**
+- **Support both portrait and landscape** orientations
+
+## 🚫 Prohibited in Screen Files
+
+- ❌ No business logic - only UI rendering
+- ❌ No direct SafeAreaView imports
+- ❌ No manual KeyboardAvoidingView
+- ❌ No hardcoded colors or spacing
+- ❌ No inline styles
+- ❌ No custom component creation
+- ❌ No API calls - use Redux actions
+
+## ✅ Required Patterns
+
+- ✅ Use ScreenWrapper with appropriate props
+- ✅ Import from @/components index
+- ✅ Use useTheme() for all styling
+- ✅ Use StyleSheet.create() for styles
+- ✅ Follow existing screen patterns
+- ✅ Use ScreenHeader for tab screens
+
+## 🔍 Before Creating/Editing Screens
+
+1. **Check existing screen implementations** for patterns
+2. **Use ScreenWrapper with correct props**
+3. **Import components from @/components**
+4. **Follow theme system for all styling**
+5. **Update documentation** after changes
+
+Remember: Screen files are ONLY for UI rendering. All business logic goes in `/src` folder.
+description:
+globs:
+alwaysApply: false
+---

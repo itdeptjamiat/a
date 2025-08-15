@@ -1,0 +1,123 @@
+# EchoReads Redux Development Rules
+
+## 🗃️ Redux Toolkit Requirements
+
+**ALL Redux code MUST use Redux Toolkit:**
+
+```typescript
+// ✅ CORRECT - Using Redux Toolkit
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
+
+// ✅ CORRECT - Async thunk pattern
+export const fetchData = createAsyncThunk(
+  'module/fetchData',
+  async (params: FetchParams, { rejectWithValue }) => {
+    try {
+      const response = await APIIns.get('/endpoint', { params });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch');
+    }
+  }
+);
+
+// ✅ CORRECT - Slice with extraReducers
+const moduleSlice = createSlice({
+  name: 'module',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
+});
+
+// ❌ INCORRECT - Plain Redux
+import { createAction, createReducer } from 'redux';
+```
+
+## 📡 API Integration Rules
+
+- **ONLY use EchoInstance** from `/src/axios/EchoInstance.ts`
+- **NEVER use axios directly** or create custom HTTP clients
+- **Always use APIIns configured instance** for all API calls
+- **Import APIIns from EchoInstance.ts** in all action files
+
+## 🔄 Async Actions Pattern
+
+- **ONLY use createAsyncThunk** for all API calls
+- **Always include try/catch blocks** with rejectWithValue
+- **Handle all three states**: pending, fulfilled, rejected
+- **Include loading and error states** in all slices
+
+## 🎯 Selector Requirements
+
+- **Use createSelector for expensive selectors** - memoization required
+- **Export all selectors** from `/src/redux/selectors/index.ts`
+- **Use naming convention**: `select[ModuleName][Property]`
+- **Import selectors in components** - never inline state access
+
+## 📁 File Structure Requirements
+
+```
+src/redux/
+├── slices/
+│   └── [moduleName]Slice.ts      # State + reducers
+├── actions/
+│   └── [moduleName]Actions.ts    # Async thunks
+├── selectors/
+│   └── [moduleName]Selectors.ts  # Memoized selectors
+└── store.ts                      # Store configuration
+```
+
+## 🚫 Prohibited Patterns
+
+- ❌ No plain Redux - must use Redux Toolkit
+- ❌ No API calls in slice files - only in actions
+- ❌ No direct axios usage - must use EchoInstance
+- ❌ No unmemoized expensive selectors
+- ❌ No inline state access in components
+- ❌ No missing error handling in async thunks
+
+## ✅ Required Patterns
+
+- ✅ Use createAsyncThunk for all API calls
+- ✅ Use createSelector for expensive selectors
+- ✅ Export selectors from index.ts
+- ✅ Handle pending/fulfilled/rejected states
+- ✅ Include loading and error states
+- ✅ Use APIIns from EchoInstance
+- ✅ Follow naming conventions
+
+## 🔍 Before Creating/Editing Redux Code
+
+1. **Check existing Redux implementations** for patterns
+2. **Use only Redux Toolkit functions**
+3. **Follow the exact file structure**
+4. **Export selectors from index.ts**
+5. **Update store.ts with new reducers**
+6. **Update README.md store shape section**
+
+## 📚 Redux Documentation
+
+- **Update store shape** in README.md when adding new slices
+- **Follow MODULE_CREATION_TEMPLATE.md** for new modules
+- **Document all selectors** with clear naming
+- **Include TypeScript interfaces** for all state types
+
+Remember: All Redux code must use Redux Toolkit. Never use plain Redux or make API calls in slice files.
+description:
+globs:
+alwaysApply: false
+---
