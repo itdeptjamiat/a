@@ -1,0 +1,105 @@
+# EchoReads Component Development Rules
+
+## 🎨 Theme System Requirements
+
+**ALL components MUST use the theme system:**
+
+```typescript
+// ✅ CORRECT - Using useTheme hook
+import { useTheme } from '@/context/ThemeContext';
+
+const MyComponent = () => {
+  const { theme } = useTheme();
+  
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.surface,
+      padding: theme.spacing.md,
+      borderRadius: theme.borderRadius.lg,
+    },
+    text: {
+      color: theme.colors.text,
+      fontSize: theme.typography.fontSize.lg,
+    },
+  });
+  
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>Content</Text>
+    </View>
+  );
+};
+
+// ❌ INCORRECT - Hardcoded values
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#1a1a1a',
+    padding: 16,
+    borderRadius: 12,
+  },
+  text: {
+    color: '#ffffff',
+    fontSize: 18,
+  },
+});
+```
+
+## 🔄 Animation Requirements
+
+- **ONLY use React Native Reanimated** - no Animated API
+- **Use withSpring() for button interactions** and micro-animations
+- **Use Layout.springify() for dynamic content** and list changes
+- **Use FadeInDown, FadeInUp for content loading**
+
+## 📱 Responsive Design
+
+- **Use useWindowDimensions hook** for screen size detection
+- **Adapt layouts for different screen sizes** (mobile, tablet, desktop)
+- **Ensure minimum 44px touch targets** for all interactive elements
+- **Support both portrait and landscape** orientations
+
+## 🎯 Component Standards
+
+- **Use semantic color names** (primary, surface, text) not descriptive (blue, gray)
+- **Use theme spacing values** (xs, sm, md, lg, xl, 2xl, 3xl)
+- **Use theme border radius values** (sm, md, lg, xl, 2xl, full)
+- **Use theme shadow system** for elevation effects
+
+## 🚫 Prohibited Patterns
+
+- ❌ No hardcoded colors - must use theme.colors
+- ❌ No hardcoded spacing - must use theme.spacing
+- ❌ No inline styles - must use StyleSheet.create()
+- ❌ No Animated API - must use Reanimated
+- ❌ No custom color schemes - must use theme system
+
+## ✅ Required Patterns
+
+- ✅ Use useTheme() hook for all styling
+- ✅ Use StyleSheet.create() for styles
+- ✅ Use theme.colors for all colors
+- ✅ Use theme.spacing for all spacing
+- ✅ Use theme.borderRadius for all rounded corners
+- ✅ Use theme.shadows for all elevation effects
+- ✅ Use Reanimated for all animations
+
+## 🔍 Before Creating/Editing Components
+
+1. **Check existing component implementations** for patterns
+2. **Use theme system for all styling**
+3. **Use Reanimated for animations**
+4. **Ensure responsive design**
+5. **Update component index** if adding new components
+
+## 📚 Component Documentation
+
+- **Export all components** from appropriate index files
+- **Use consistent naming conventions** for props and styles
+- **Add TypeScript interfaces** for all component props
+- **Include usage examples** in component comments
+
+Remember: All components must be theme-aware and responsive. Never use hardcoded values.
+description:
+globs:
+alwaysApply: false
+---

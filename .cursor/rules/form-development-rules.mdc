@@ -1,0 +1,105 @@
+# EchoReads Form Development Rules
+
+## 🧾 Form Library Requirements
+
+**ALL forms MUST use React Hook Form + Zod:**
+
+```typescript
+// ✅ CORRECT - Using FormProvider wrapper
+import { FormProvider } from '@/form/FormProvider';
+import { TextField } from '@/form/TextField';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const schema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+const LoginForm = () => {
+  const methods = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  return (
+    <FormProvider {...methods}>
+      <TextField name="email" placeholder="Email" />
+      <TextField name="password" placeholder="Password" secureTextEntry />
+    </FormProvider>
+  );
+};
+
+// ❌ INCORRECT - Custom form components
+const CustomInput = ({ value, onChange }) => (
+  <TextInput value={value} onChangeText={onChange} />
+);
+```
+
+## 🔐 Authentication Form Rules
+
+- **Use FormProvider wrapper** from `/src/form/FormProvider.tsx`
+- **Use TextField component** from `/src/form/TextField.tsx`
+- **Use Zod schemas** for all validation
+- **Use useForm hook** with zodResolver
+
+## 📱 Form Screen Requirements
+
+- **Use ScreenWrapper with keyboardAvoidingView** for all form screens
+- **Set appropriate keyboardOffset** for platform-specific behavior
+- **Handle keyboard appearance** properly on both iOS and Android
+
+## 🎨 Theme Integration
+
+- **All form components use theme system** via useTheme() hook
+- **No hardcoded colors or spacing** in form components
+- **Consistent styling** across all forms using theme values
+
+## 🚫 Prohibited Patterns
+
+- ❌ No custom form components - use FormProvider and TextField
+- ❌ No other form libraries - only React Hook Form + Zod
+- ❌ No inline form validation - use Zod schemas
+- ❌ No hardcoded styling - use theme system
+- ❌ No direct TextInput usage - use TextField component
+
+## ✅ Required Patterns
+
+- ✅ Use FormProvider wrapper for all forms
+- ✅ Use TextField component for all inputs
+- ✅ Use Zod schemas for validation
+- ✅ Use useForm with zodResolver
+- ✅ Use ScreenWrapper with keyboardAvoidingView
+- ✅ Use theme system for all styling
+
+## 🔍 Before Creating/Editing Forms
+
+1. **Check existing form implementations** for patterns
+2. **Use FormProvider and TextField components**
+3. **Create Zod schemas for validation**
+4. **Use ScreenWrapper with keyboard handling**
+5. **Follow theme system for styling**
+
+## 📚 Form Documentation
+
+- **Document all Zod schemas** with clear validation rules
+- **Include error message examples** in schema definitions
+- **Document form field requirements** and constraints
+- **Provide usage examples** for complex forms
+
+## 🎯 Form Validation Standards
+
+- **Use descriptive error messages** for user experience
+- **Validate all required fields** with appropriate constraints
+- **Handle edge cases** like empty strings and special characters
+- **Provide real-time validation** where appropriate
+
+Remember: All forms must use React Hook Form + Zod. Never create custom form components or use other validation libraries.
+description:
+globs:
+alwaysApply: false
+---

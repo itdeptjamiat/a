@@ -1,0 +1,99 @@
+# EchoReads Core Development Rules
+
+## 🚨 CRITICAL: Always Read rules.md First
+
+Before making ANY changes to this codebase, you MUST read and understand [rules.md](mdc:rules.md). This file contains the source of truth for all development patterns and is strictly enforced.
+
+## 📁 Project Structure Rules
+
+- **ONLY screens go in `/app` folder** - NO business logic, components, or utilities
+- **All business logic must be in `/src` folder** - components, hooks, redux, services
+- **Follow the exact folder structure** defined in [rules.md](mdc:rules.md)
+
+## 🎨 Theme System Enforcement
+
+- **NEVER use hardcoded colors** - always use `useTheme()` hook
+- **NEVER use inline styles** - always use `StyleSheet.create()`
+- **All colors must come from theme.colors** - no #hex values or color names
+- **All spacing must use theme.spacing** - no magic numbers like 16, 24, etc.
+
+## 🖥️ Screen Management Rules
+
+- **NEVER use SafeAreaView directly** - always use `ScreenWrapper` component
+- **Import ScreenWrapper from `@/components`** - not direct path
+- **Use appropriate props**:
+  - Regular screens: `<ScreenWrapper>`
+  - Form screens: `<ScreenWrapper keyboardAvoidingView>`
+  - Bottom safe area: `<ScreenWrapper bottomSafeArea>`
+
+## 🗃️ Redux Rules
+
+- **ONLY use Redux Toolkit** - no plain Redux
+- **ONLY use createAsyncThunk** for API calls
+- **NEVER make API calls in slice files** - only in actions
+- **Always use createSelector** for expensive selectors
+- **Export all selectors** from `/src/redux/selectors/index.ts`
+
+## 🧾 Form Rules
+
+- **ONLY use React Hook Form + Zod** - no other form libraries
+- **Always use FormProvider wrapper** from `/src/form/FormProvider.tsx`
+- **Always use TextField component** from `/src/form/TextField.tsx`
+- **NEVER create custom form components**
+
+## 📡 API Rules
+
+- **ONLY use EchoInstance** from `/src/axios/EchoInstance.ts`
+- **NEVER use axios directly** or create custom HTTP clients
+- **Always use APIIns configured instance** for all API calls
+
+## 🔄 Component Rules
+
+- **NEVER create custom button components** - use CustomButton variants
+- **NEVER create custom card components** - use PostCard component
+- **NEVER create custom search inputs** - use SearchBar component
+- **NEVER create custom category selectors** - use ButtonSelectorGroup
+
+## 📱 Animation Rules
+
+- **ONLY use React Native Reanimated** - no Animated API
+- **Always use withSpring()** for button interactions
+- **Use Layout.springify()** for dynamic content
+
+## 📚 Documentation Rules
+
+- **ALWAYS update README.md** when adding new features
+- **ALWAYS update rules.md** when adding new patterns
+- **ALWAYS update store shape** when adding Redux modules
+
+## ⚠️ Prohibited Patterns
+
+- ❌ No inline styling
+- ❌ No hardcoded colors or spacing
+- ❌ No custom HTTP clients
+- ❌ No business logic in /app folder
+- ❌ No unapproved packages without rules update
+- ❌ No direct SafeAreaView usage
+- ❌ No manual KeyboardAvoidingView
+- ❌ No custom form validation libraries
+
+## 🔍 Before Making Changes
+
+1. **Read [rules.md](mdc:rules.md) completely**
+2. **Check existing patterns** in similar files
+3. **Use only approved technologies** listed in rules.md
+4. **Follow the exact file structure** defined in rules.md
+5. **Update documentation** after completing changes
+
+## 📞 When in Doubt
+
+- **Check [rules.md](mdc:rules.md) first**
+- **Look at existing implementations** for patterns
+- **Use only the technologies** explicitly listed in Required Technologies section
+- **Follow the enforced patterns** exactly as specified
+
+Remember: This codebase has STRICT rules that must be followed. Violating these rules will cause compilation errors and inconsistent behavior.
+description:
+globs:
+alwaysApply: false
+---
