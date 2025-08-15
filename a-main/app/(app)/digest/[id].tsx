@@ -1,260 +1,188 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Text,
+  ScrollView,
+  ImageBackground,
+  TouchableOpacity,
+  Dimensions,
+  FlatList,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenWrapper } from '@/components';
 import { SectionHeader } from '@/components/home';
 import { useTheme } from '@/context/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { fetchMagazineDetail } from '@/redux/actions/magazineActions';
-import { selectSelectedMagazine, selectMagazineDetailLoading, selectMagazineError, selectDigests } from '@/redux/selectors/magazineSelectors';
+import { fetchDigestsOnly } from '@/redux/actions/magazineActions';
+import { selectDigests } from '@/redux/selectors/magazineSelectors';
+import { DigestCard } from './index'; // Import DigestCard from the same directory
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const SingleDigestScreen: React.FC = () => {
-  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { theme } = useTheme();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const dispatch = useAppDispatch();
 
-  const loading = useAppSelector(selectMagazineDetailLoading);
-  const error = useAppSelector(selectMagazineError);
-  const selectedDigest = useAppSelector(selectSelectedMagazine) as any; // Reusing magazine selector, will fetch digest by ID
-  const allDigests = useAppSelector(selectDigests) as any[];
+  // For now, using all digests and filtering, replace with single digest fetch later
+  const allDigests = useAppSelector(selectDigests);
+  const digest = allDigests.find(d => String(d.mid) === id);
 
   useEffect(() => {
-    if (id) {
-      // Assuming fetchMagazineDetail can fetch any content by ID, if not, a new action is needed
-      dispatch(fetchMagazineDetail(String(id)));
+    // Fetch all digests if not already available, or a specific digest by ID
+    if (!digest) {
+      dispatch(fetchDigestsOnly(undefined));
     }
-  }, [dispatch, id]);
+  }, [dispatch, digest, id]);
 
-  const handleBack = useCallback(() => router.back(), [router]);
-  const handleRead = useCallback(() => {
-    // Navigate to PDF reader or content view when implemented
-    console.log('Read Digest:', selectedDigest?.name);
-    // router.push(`/reader?mid=${selectedDigest?.mid}`);
-  }, [selectedDigest]);
+  const handleReadPress = useCallback(() => {
+    if (digest?.mid) {
+      router.push(`/reader?mid=${digest.mid}`);
+    }
+  }, [router, digest]);
 
-  const relatedDigests = useMemo(() => {
-    // Placeholder for related digests: filter by category or just show some random ones
-    if (!allDigests.length || !selectedDigest?.category) return allDigests.slice(0, 4);
-    return allDigests.filter(d => d.category === selectedDigest.category && d.mid !== selectedDigest.mid).slice(0, 4);
-  }, [allDigests, selectedDigest]);
+  const handleMoreDigestsPress = useCallback((digestId: string) => {
+    router.push(`/digest/${digestId}`);
+  }, [router]);
+
+  if (!digest) {
+    return (
+      <ScreenWrapper>
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.text }}>Digest not found.</Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  // Filter out the current digest from the "More Paigham Digests" section
+  const moreDigests = allDigests.filter(d => String(d.mid) !== id).slice(0, 5); // Show up to 5 other digests
 
   const styles = StyleSheet.create({
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
+    container: {
+      flexGrow: 1,
       backgroundColor: theme.colors.background,
     },
-    backButton: {
-      width: 40,
-      height: 40,
-      borderRadius: theme.borderRadius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.surfaceLight,
+    headerImage: {
+      width: SCREEN_WIDTH,
+      height: SCREEN_WIDTH * 0.7, // Aspect ratio for hero image
+      justifyContent: 'flex-end',
+      padding: theme.spacing.md,
     },
-    title: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize['2xl'],
-      fontWeight: theme.typography.fontWeight.bold as any,
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.4)',
     },
-    dotsButton: {
-      width: 40,
-      height: 40,
-      borderRadius: theme.borderRadius.full,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.surfaceLight,
-    },
-    scrollContent: {
-      paddingBottom: theme.spacing['2xl'],
-    },
-    hero: {
-      marginHorizontal: theme.spacing.lg,
-      borderRadius: theme.borderRadius.xl,
-      overflow: 'hidden',
-      backgroundColor: theme.colors.surface,
-      ...theme.shadows.lg,
-      height: 250,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    heroImage: {
-      width: '100%',
-      height: '100%',
-      resizeMode: 'cover',
-    },
-    heroPlayButton: {
+    playButtonContainer: {
       position: 'absolute',
-      width: 60,
-      height: 60,
-      borderRadius: 30,
+      top: '50%',
+      left: '50%',
+      transform: [{ translateX: -30 }, { translateY: -30 }],
       backgroundColor: theme.colors.primary,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...theme.shadows.lg,
-    },
-    name: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize['2xl'],
-      fontWeight: theme.typography.fontWeight.extrabold as any,
-      textAlign: 'center',
-      marginTop: theme.spacing.lg,
-    },
-    category: {
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      fontSize: theme.typography.fontSize.base,
-      marginTop: theme.spacing.xs,
-    },
-    descriptionWrap: {
-      paddingHorizontal: theme.spacing.lg,
-      marginTop: theme.spacing.lg,
-    },
-    descriptionText: {
-      color: theme.colors.textSecondary,
-      fontSize: theme.typography.fontSize.base,
-      lineHeight: theme.typography.lineHeight.normal,
-    },
-    ctaRow: {
-      flexDirection: 'row',
-      gap: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      marginTop: theme.spacing.xl,
-    },
-    ctaButton: {
-      flex: 1,
-      height: 56,
-      borderRadius: theme.borderRadius.lg,
-      backgroundColor: theme.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
+      borderRadius: theme.borderRadius.full,
+      padding: theme.spacing.sm,
       ...theme.shadows.md,
     },
-    ctaText: {
+    title: {
       color: theme.colors.textInverse,
-      fontWeight: theme.typography.fontWeight.bold as any,
-      fontSize: theme.typography.fontSize.base,
+      fontSize: theme.typography.fontSize['4xl'],
+      fontWeight: theme.typography.fontWeight.extrabold as any,
+      marginBottom: theme.spacing.xs,
+      textShadowColor: 'rgba(0, 0, 0, 0.75)',
+      textShadowOffset: { width: -1, height: 1 },
+      textShadowRadius: 10,
     },
-    relatedSection: {
-      marginTop: theme.spacing['2xl'],
-      paddingHorizontal: theme.spacing.lg,
+    category: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: theme.typography.fontWeight.semibold as any,
+      textShadowColor: 'rgba(0, 0, 0, 0.75)',
+      textShadowOffset: { width: -1, height: 1 },
+      textShadowRadius: 5,
     },
-    relatedList: {
-      paddingVertical: theme.spacing.md,
-    },
-    relatedCard: {
-      width: 120,
-      borderRadius: theme.borderRadius.lg,
-      overflow: 'hidden',
+    contentSection: {
+      padding: theme.spacing.lg,
       backgroundColor: theme.colors.surface,
-      marginRight: theme.spacing.md,
-      ...theme.shadows.sm,
+      borderTopLeftRadius: theme.borderRadius.xl,
+      borderTopRightRadius: theme.borderRadius.xl,
+      marginTop: -theme.spacing.xl, // Overlap with image
     },
-    relatedImage: {
-      width: '100%',
-      height: 120,
-      resizeMode: 'cover',
+    description: {
+      color: theme.colors.textSecondary,
+      fontSize: theme.typography.fontSize.base,
+      lineHeight: theme.typography.lineHeight.relaxed,
+      marginBottom: theme.spacing.xl,
     },
-    relatedTitle: {
-      color: theme.colors.text,
-      fontSize: theme.typography.fontSize.sm,
-      fontWeight: theme.typography.fontWeight.bold as any,
-      padding: theme.spacing.sm,
-    },
-    center: { // Add this style definition
-      flex: 1,
+    readButton: {
+      backgroundColor: theme.colors.primary,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.borderRadius.lg,
       alignItems: 'center',
+      marginBottom: theme.spacing.md,
+    },
+    readButtonText: {
+      color: theme.colors.textInverse,
+      fontSize: theme.typography.fontSize.lg,
+      fontWeight: theme.typography.fontWeight.bold as any,
+    },
+    sectionHeader: {
+      paddingHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.md,
+      marginTop: theme.spacing.lg,
+    },
+    digestList: {
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.xl,
+    },
+    center: {
+      flex: 1,
       justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 
-  if (loading && !selectedDigest) {
-    return (
-      <ScreenWrapper>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      </ScreenWrapper>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenWrapper>
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.error }}>Error: {error}</Text>
-        </View>
-      </ScreenWrapper>
-    );
-  }
-
-  if (!selectedDigest) {
-    return (
-      <ScreenWrapper>
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.textSecondary }}>Digest not found.</Text>
-        </View>
-      </ScreenWrapper>
-    );
-  }
-
   return (
     <ScreenWrapper bottomSafeArea>
-      <Animated.View entering={FadeInDown.delay(120)} style={styles.header}>
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={handleBack}>
-          <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Digest</Text>
-        <TouchableOpacity style={styles.dotsButton} activeOpacity={0.85} onPress={() => console.log('More options')}>
-          <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.text} />
-        </TouchableOpacity>
-      </Animated.View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Animated.View entering={FadeInUp.delay(140)} style={styles.hero}>
-          <Image source={{ uri: selectedDigest.image }} style={styles.heroImage} />
-          <TouchableOpacity style={styles.heroPlayButton} activeOpacity={0.8} onPress={handleRead}>
-            <Ionicons name="play" size={32} color={theme.colors.textInverse} />
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={FadeInDown.delay(100)}>
+          <ImageBackground source={{ uri: digest.image }} style={styles.headerImage}>
+            <LinearGradient
+              colors={['transparent', theme.colors.background]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.overlay}
+            />
+            <TouchableOpacity style={styles.playButtonContainer} onPress={handleReadPress}>
+              <Ionicons name="play" size={40} color={theme.colors.textInverse} />
+            </TouchableOpacity>
+            <Text style={styles.title}>{digest.name}</Text>
+            <Text style={styles.category}>{digest.category}</Text>
+          </ImageBackground>
         </Animated.View>
 
-        <Text style={styles.name}>{selectedDigest.name}</Text>
-        <Text style={styles.category}>{selectedDigest.category}</Text>
+        <View style={styles.contentSection}>
+          <Text style={styles.description}>{digest.description}</Text>
 
-        <View style={styles.ctaRow}>
-          <TouchableOpacity style={styles.ctaButton} activeOpacity={0.9} onPress={handleRead}>
-            <Ionicons name="book-outline" size={20} color={theme.colors.textInverse} />
-            <Text style={styles.ctaText}>Read Now</Text>
+          <TouchableOpacity style={styles.readButton} onPress={handleReadPress}>
+            <Text style={styles.readButtonText}>Read Digest</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.descriptionWrap}>
-          <Text style={styles.descriptionText}>{selectedDigest.description || 'No description available for this digest.'}</Text>
-        </View>
-
-        {relatedDigests.length > 0 && (
-          <View style={styles.relatedSection}>
-            <SectionHeader title="More Paigham Digests" />
+        {moreDigests.length > 0 && (
+          <View>
+            <Text style={[styles.sectionTitle, styles.sectionHeader]}>More Paigham Digests</Text>
             <FlatList
               horizontal
-              showsHorizontalScrollIndicator={false}
-              data={relatedDigests}
+              data={moreDigests}
+              renderItem={({ item }) => <DigestCard digest={item} onPress={handleMoreDigestsPress} />}
               keyExtractor={(item) => String(item.mid)}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.relatedCard} onPress={() => router.push(`/digest/${item.mid}`)}>
-                  <Image source={{ uri: item.image }} style={styles.relatedImage} />
-                  <Text style={styles.relatedTitle} numberOfLines={2}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={styles.relatedList}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.digestList}
             />
           </View>
         )}

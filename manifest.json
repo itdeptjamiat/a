@@ -1,0 +1,9 @@
+{
+    "mid": "24",
+    "pageCount": 40,
+    "baseUrl": "https://pub-xxxxxxxx.r2.dev/magazines/24/",
+    "pattern": "1_Page_{nn}.jpg",    
+    "zeroPad": 2,                     
+    "defaultAspect": 1.414,
+    "version": 1
+  }
